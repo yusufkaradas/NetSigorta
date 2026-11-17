@@ -4,7 +4,7 @@
 ![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-EF%20Core%208-CC2927?logo=microsoftsqlserver&logoColor=white)
 ![Azure](https://img.shields.io/badge/Azure-App%20Service%20%7C%20Static%20Web%20Apps-0078D4?logo=microsoftazure&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-319%20xUnit-success)
+![Tests](https://img.shields.io/badge/tests-xUnit%20%2B%20Moq-informational)
 
 NetSigorta, kasko sigortasının uçtan uca satış ve yönetim sürecini dijitalleştiren bir **Core Insurance** platformudur. ASP.NET Core 8 Web API ve Angular 22 ile geliştirilmiştir. Müşteri ve araç kaydından başlayarak fiyatlandırma, teklif, poliçeleştirme, ödeme, iptal/iade ve yenileme adımlarının tamamını tek bir sistemde yönetir.
 
@@ -39,7 +39,7 @@ Müşteri ➔ Araç ➔ Fiyatlandırma Motoru ➔ Teklif ➔ Poliçe ➔ Ödeme 
 - Üye olmadan teklif alma: plaka, araç ve kişi bilgisiyle dakikalar içinde fiyat tahmini.
 - Türk plaka formatı doğrulaması, araç teknik özellik ayrıştırma ve otomatik araç kategorisi sınıflandırma.
 - Doğrulama kodu (OTP) ile kimlik teyidi.
-- **Sigorta şirketi karşılaştırması:** Tak-çıkar sağlayıcı mimarisi (`IInsurerQuoteProvider`) ile birden fazla şirketten teklif toplanır ve karşılaştırılır.
+- **Sigorta şirketi karşılaştırması:** Tak-çıkar sağlayıcı mimarisi (`IInsurerQuoteProvider`) ile birden fazla şirketin teklifi karşılaştırılır. Şu an üç **demo** sağlayıcı kullanılmaktadır; gerçek şirket entegrasyonu aynı arayüzle eklenebilir.
 
 ### Paket ve Teminat Yönetimi
 - `InsurancePackage` (Genişletilmiş Kasko, Dar Kasko vb.) ve `Coverage` / `CoverageOption` yapısıyla kod yazmadan yeni ürün tanımlanabilir.
@@ -50,7 +50,8 @@ Müşteri ➔ Araç ➔ Fiyatlandırma Motoru ➔ Teklif ➔ Poliçe ➔ Ödeme 
 - **PDF poliçe** üretimi (QuestPDF).
 - Ödeme kaydı ve takibi.
 - İptal talebi ve iade süreçleri (`PolicyCancellationRequest`).
-- Önceki poliçe bilgisiyle **yenileme** ve süresi dolan kayıtlar için arka plan işi (`ExpirationWorker`).
+- Yaklaşan yenilemelerin listelenmesi ve poliçeden **yenileme teklifi** oluşturma.
+- Süresi dolan poliçe ve teklifleri otomatik olarak `Expired` durumuna alan arka plan işi (`ExpirationWorker`).
 
 ### Araç Değer Kataloğu
 - Excel üzerinden toplu araç değer listesi içe aktarma (ClosedXML).
@@ -104,12 +105,12 @@ Backend, sorumlulukların net ayrıldığı **katmanlı mimari** ile kurgulanmı
 | Katman | Teknolojiler |
 |---|---|
 | **Backend** | .NET 8, ASP.NET Core Web API, Entity Framework Core 8 (Code-First), SQL Server |
-| **Güvenlik** | JWT Bearer, rol tabanlı yetkilendirme, BCrypt parola özeti |
+| **Güvenlik** | JWT Bearer, rol tabanlı yetkilendirme, ASP.NET Core Identity `PasswordHasher` (PBKDF2) |
 | **Doğrulama** | FluentValidation |
 | **Doküman** | QuestPDF (poliçe PDF), ClosedXML (Excel içe aktarma) |
 | **API Dokümantasyonu** | Swagger / OpenAPI (Swashbuckle) |
 | **Frontend** | Angular 22, TypeScript 6, RxJS, SCSS, Reactive Forms |
-| **Test** | xUnit, Moq, WebApplicationFactory, Coverlet |
+| **Test** | xUnit, Moq, WebApplicationFactory, Coverlet (backend) |
 | **DevOps** | GitHub Actions, Azure App Service, Azure Static Web Apps, Azure SQL |
 
 ---
@@ -201,19 +202,19 @@ Azure App Service üzerinde bu anahtarlar `Jwt__Key`, `Cors__Origins__0` biçimi
 
 ## Testler
 
-Projede **319 test** bulunur: servis katmanı birim testleri ve `WebApplicationFactory` tabanlı entegrasyon testleri.
+Backend'de iki test projesi bulunur:
+
+| Proje | Kapsam |
+|---|---|
+| `Kasko.Business.Tests` | Servis katmanı birim testleri (xUnit + Moq) |
+| `Kasko.IntegrationTests` | `WebApplicationFactory` ile uçtan uca API ve yetkilendirme testleri |
 
 ```bash
 cd Backend/KaskoManagementSystem
 dotnet test
 ```
 
-Frontend birim testleri:
-
-```bash
-cd Fronted/KaskoManagementSystemFronted
-npm test
-```
+> Entegrasyon testleri yerel SQL Server üzerinde `KaskoManagementDb_Test` veritabanını kullanır (`Kasko.IntegrationTests/TestDatabaseInitializer.cs`). Farklı bir sunucu kullanıyorsanız bu dosyadaki bağlantı dizesini düzenleyin.
 
 ---
 

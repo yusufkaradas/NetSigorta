@@ -6,6 +6,8 @@
 ![Azure](https://img.shields.io/badge/Azure-App%20Service%20%7C%20Static%20Web%20Apps-0078D4?logo=microsoftazure&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-xUnit%20%2B%20Moq-informational)
 
+> 🌐 **Canlı Demo:** [netsigorta.online](https://netsigorta.online/) — Demoyu buradan deneyebilirsiniz.
+
 NetSigorta, kasko sigortasının uçtan uca satış ve yönetim sürecini dijitalleştiren bir **Core Insurance** platformudur. ASP.NET Core 8 Web API ve Angular 22 ile geliştirilmiştir. Müşteri ve araç kaydından başlayarak fiyatlandırma, teklif, poliçeleştirme, ödeme, iptal/iade ve yenileme adımlarının tamamını tek bir sistemde yönetir.
 
 ```

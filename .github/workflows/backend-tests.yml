@@ -1,0 +1,70 @@
+name: Backend Tests
+
+on:
+  pull_request:
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-tests.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Unit and Integration Tests
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'Ci_Test_Passw0rd!'
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Ci_Test_Passw0rd!' -C -Q 'SELECT 1' || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      KASKO_TEST_CONNECTION: 'Server=localhost,1433;Database=KaskoManagementDb_Test;User Id=sa;Password=Ci_Test_Passw0rd!;TrustServerCertificate=True;Connect Timeout=60;'
+      Jwt__Key: 'ci-only-jwt-signing-key-not-used-anywhere-else-0123456789'
+      DOTNET_NOLOGO: 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+        working-directory: Backend/KaskoManagementSystem
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: Backend/KaskoManagementSystem
+
+      - name: Unit tests
+        run: dotnet test Kasko.Business.Tests --configuration Release --no-build --logger "trx;LogFileName=unit.trx" --results-directory TestResults
+        working-directory: Backend/KaskoManagementSystem
+
+      - name: Integration tests
+        run: dotnet test Kasko.IntegrationTests --configuration Release --no-build --logger "trx;LogFileName=integration.trx" --results-directory TestResults
+        working-directory: Backend/KaskoManagementSystem
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: Backend/KaskoManagementSystem/TestResults

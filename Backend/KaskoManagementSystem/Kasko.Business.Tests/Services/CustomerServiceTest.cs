@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Kasko.Business.DTOs.Customer;
 using Kasko.Business.Exceptions;
+using Kasko.Business.Security;
 using Kasko.Business.Services;
 using Kasko.DataAccess.Repositories.Abstract;
 using Kasko.Entities.Concrete;
@@ -712,6 +713,67 @@ namespace Kasko.Business.Tests.Services
             _unitOfWorkMock.Verify(
                 x => x.SaveChangesAsync(),
                 Times.Once);
+        }
+
+        private (CustomerService Service, Customer Customer) CreateDemoLinkedCustomer()
+        {
+            var customer = new Customer
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Elif",
+                LastName = "Demir",
+                IdentityNumber = "10000000146",
+                Email = "elif.demir@ornek.com",
+                IsActive = true
+            };
+
+            _customerRepositoryMock.Setup(x => x.GetByIdAsync(customer.Id)).ReturnsAsync(customer);
+
+            var users = new Mock<IUserRepository>();
+            users
+                .Setup(x => x.FindAsync(It.IsAny<Expression<Func<User, bool>>>()))
+                .ReturnsAsync(new List<User> { new() { Email = "customer@test.com", CustomerId = customer.Id } });
+            _unitOfWorkMock.Setup(x => x.Users).Returns(users.Object);
+
+            var service = new CustomerService(
+                _unitOfWorkMock.Object,
+                _httpContextAccessorMock.Object,
+                new DemoAccountPolicy(new[] { "customer@test.com" }));
+
+            return (service, customer);
+        }
+
+        [Fact]
+        public async Task DeleteAsync_WhenLinkedToDemoAccount_ShouldThrowAndNotDelete()
+        {
+            var (service, customer) = CreateDemoLinkedCustomer();
+
+            await Assert.ThrowsAsync<BadRequestException>(() => service.DeleteAsync(customer.Id));
+
+            Assert.False(customer.IsDeleted);
+            _customerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Customer>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("baska@ornek.com", true)]
+        [InlineData("elif.demir@ornek.com", false)]
+        public async Task UpdateAsync_WhenLinkedToDemoAccount_ShouldBlockEmailAndStatusChanges(string email, bool isActive)
+        {
+            var (service, customer) = CreateDemoLinkedCustomer();
+
+            var error = await Assert.ThrowsAsync<BadRequestException>(() => service.UpdateAsync(new UpdateCustomerDto
+            {
+                Id = customer.Id,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                IdentityNumber = customer.IdentityNumber,
+                Email = email,
+                IsActive = isActive
+            }));
+
+            Assert.Equal(DemoAccountPolicy.BlockedMessage, error.Message);
+            Assert.Equal("elif.demir@ornek.com", customer.Email);
+            Assert.True(customer.IsActive);
         }
     }
 }

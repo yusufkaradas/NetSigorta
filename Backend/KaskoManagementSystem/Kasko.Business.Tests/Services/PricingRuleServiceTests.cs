@@ -303,14 +303,16 @@ public class PricingRuleServiceTests
     [Fact]
     public async Task DeleteAsync_WhenMiddleVersionDeleted_ShouldExtendPreviousVersion()
     {
+        var today = DateTime.UtcNow.Date;
+
         var previous = new PricingRule
         {
             Id = Guid.NewGuid(),
             Code = "BASE_KASKO_RATE",
             Value = 0.0215m,
             Version = 2,
-            EffectiveFrom = new DateTime(2026, 9, 1),
-            EffectiveUntil = new DateTime(2026, 11, 1).AddTicks(-1),
+            EffectiveFrom = today.AddDays(-60),
+            EffectiveUntil = today.AddDays(30).AddTicks(-1),
             IsActive = true
         };
 
@@ -320,8 +322,8 @@ public class PricingRuleServiceTests
             Code = "BASE_KASKO_RATE",
             Value = 0.0230m,
             Version = 3,
-            EffectiveFrom = new DateTime(2026, 11, 1),
-            EffectiveUntil = new DateTime(2027, 1, 1).AddTicks(-1),
+            EffectiveFrom = today.AddDays(30),
+            EffectiveUntil = today.AddDays(90).AddTicks(-1),
             IsActive = true
         };
 

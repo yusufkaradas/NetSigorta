@@ -691,7 +691,7 @@ public class ResourceAuthorizationTests
                 null);
 
         Assert.Equal(
-            HttpStatusCode.NotFound,
+            HttpStatusCode.Forbidden,
             response.StatusCode);
     }
     [Fact]
@@ -770,7 +770,7 @@ public class ResourceAuthorizationTests
                 updateDto);
 
         Assert.Equal(
-            HttpStatusCode.NotFound,
+            HttpStatusCode.Forbidden,
             response.StatusCode);
     }
     [Fact]
@@ -842,12 +842,12 @@ public class ResourceAuthorizationTests
                 $"/api/Policy/{policyB.Id}");
 
         Assert.Equal(
-            HttpStatusCode.NotFound,
+            HttpStatusCode.Forbidden,
             response.StatusCode);
     }
 
     [Fact]
-    public async Task Manager_Can_Read_But_Cannot_Write_Operational_Data()
+    public async Task Manager_Can_Read_And_Create_Quote_But_Cannot_Delete_Or_Create_Policy()
     {
         await using var factory =
             new WebApplicationFactory<Program>();
@@ -907,7 +907,7 @@ public class ResourceAuthorizationTests
                 });
 
         Assert.Equal(
-            HttpStatusCode.Forbidden,
+            HttpStatusCode.Created,
             createResponse.StatusCode);
 
         var deleteResponse =

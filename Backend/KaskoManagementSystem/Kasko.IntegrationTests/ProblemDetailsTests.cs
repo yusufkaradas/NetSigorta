@@ -65,33 +65,14 @@ public class ProblemDetailsTests
                 factory,
                 user);
 
-        var uniqueId = Guid.NewGuid();
-
-        var email =
-            $"duplicate.{uniqueId:N}@test.local";
-
-        var identityNumber =
-            Random.Shared.NextInt64(
-                10000000000,
-                99999999999).ToString();
-
         var firstCustomer =
-            new
-            {
-                FirstName = "Problem",
-                LastName = "Details",
-                IdentityNumber = identityNumber,
-                DateOfBirth = new DateTime(1995, 1, 1),
-                Email = email,
-                PhoneNumber = "+905551234567",
-                Address = "Test Address",
-                City = "Istanbul",
-                District = "Kadikoy"
-            };
+            await IntegrationTestHelper.BuildCustomerUserAsync(
+                client,
+                $"duplicate.{Guid.NewGuid():N}@test.local");
 
         var firstResponse =
             await client.PostAsJsonAsync(
-                "/api/Customer",
+                "/api/User",
                 firstCustomer);
 
         Assert.Equal(
@@ -99,30 +80,13 @@ public class ProblemDetailsTests
             firstResponse.StatusCode);
 
         var secondCustomer =
-            new
-            {
-                FirstName = "Duplicate",
-                LastName = "Email",
-
-                IdentityNumber =
-                    Random.Shared.NextInt64(
-                        10000000000,
-                        99999999999).ToString(),
-
-                DateOfBirth =
-                    new DateTime(1995, 1, 1),
-
-                Email = email,
-
-                PhoneNumber = "+905551234568",
-                Address = "Test Address",
-                City = "Istanbul",
-                District = "Kadikoy"
-            };
+            await IntegrationTestHelper.BuildCustomerUserAsync(
+                client,
+                firstCustomer.Email);
 
         var secondResponse =
             await client.PostAsJsonAsync(
-                "/api/Customer",
+                "/api/User",
                 secondCustomer);
 
         Assert.Equal(

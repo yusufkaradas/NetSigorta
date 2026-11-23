@@ -26,18 +26,14 @@ public class AuthenticationTests
         using var client = factory.CreateClient();
 
         var response = await client.PostAsJsonAsync(
-            "/api/Customer",
+            "/api/User",
             new
             {
                 FirstName = "Integration",
                 LastName = "Test",
-                IdentityNumber = "12345678901",
-                DateOfBirth = new DateTime(1995, 1, 1),
                 Email = "integration@test.com",
-                Address = "Test Address",
-                City = "Istanbul",
-                PhoneNumber = "5551112233",
-                District = "Kadikoy"
+                Password = "Test123!",
+                RoleId = Guid.NewGuid()
             });
 
         Assert.Equal(

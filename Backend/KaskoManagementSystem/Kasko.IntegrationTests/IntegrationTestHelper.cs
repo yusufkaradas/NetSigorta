@@ -2,6 +2,8 @@
 using Kasko.Business.DTOs.Customer;
 using Kasko.Business.DTOs.Policy;
 using Kasko.Business.DTOs.Quote;
+using Kasko.Business.DTOs.Role;
+using Kasko.Business.DTOs.User;
 using Kasko.Business.DTOs.Vehicle;
 using Kasko.DataAccess;
 using Kasko.Entities.Concrete;
@@ -134,71 +136,73 @@ public static class IntegrationTestHelper
         return client;
     }
 
-    public static async Task<Guid> CreateCustomerAsync(
-     HttpClient client)
+    public static async Task<Guid> GetRoleIdAsync(
+        HttpClient client,
+        string roleName)
+    {
+        var roles =
+            await client.GetFromJsonAsync<IEnumerable<RoleDto>>(
+                "/api/Role");
+
+        var role =
+            roles?.FirstOrDefault(x => x.Name == roleName);
+
+        Assert.NotNull(role);
+
+        return role!.Id;
+    }
+
+    public static async Task<CreateUserDto> BuildCustomerUserAsync(
+        HttpClient client,
+        string? email = null)
     {
         var uniqueId = Guid.NewGuid();
 
-        var identityNumber =
-            Random.Shared.NextInt64(
-                10000000000,
-                99999999999)
-            .ToString();
-
-        var dto = new CreateCustomerDto
+        return new CreateUserDto
         {
             FirstName = "Integration",
             LastName = "Customer",
-
-            IdentityNumber =
-                identityNumber,
-
-            DateOfBirth =
-                new DateTime(1995, 1, 1),
-
-            Email =
-                $"customer.{uniqueId:N}@test.local",
-
-            PhoneNumber =
-                "+90555" +
-                Random.Shared.Next(
-                    1000000,
-                    9999999),
-
-            Address =
-                "Integration Test Address",
-
-            City =
-                "Istanbul",
-
-            District =
-                "Kadikoy"
+            Email = email ?? $"customer.{uniqueId:N}@test.local",
+            Password = "Test123!",
+            PhoneNumber = "5" + Random.Shared.Next(100000000, 999999999),
+            RoleId = await GetRoleIdAsync(client, "Customer"),
+            IdentityNumber = Random.Shared.NextInt64(10000000000, 99999999999).ToString(),
+            DateOfBirth = new DateTime(1995, 1, 1),
+            City = "Istanbul",
+            District = "Kadikoy",
+            Address = "Integration Test Address"
         };
+    }
+
+    public static async Task<Guid> CreateCustomerAsync(
+        HttpClient client)
+    {
+        var dto =
+            await BuildCustomerUserAsync(client);
 
         var response =
             await client.PostAsJsonAsync(
-                "/api/Customer",
+                "/api/User",
                 dto);
 
         Assert.Equal(
-     HttpStatusCode.Created,
-     response.StatusCode);
+            HttpStatusCode.Created,
+            response.StatusCode);
 
         var customers =
             await client.GetFromJsonAsync<
                 IEnumerable<CustomerListDto>>(
                 "/api/Customer");
 
-        Assert.NotNull(customers);
-
         var customer =
-            customers!.FirstOrDefault(
+            customers?.FirstOrDefault(
                 x => x.Email == dto.Email);
 
         Assert.NotNull(customer);
 
         return customer!.Id;
     }
+
     public static async Task<VehicleDto> CreateVehicleAsync(
         WebApplicationFactory<Program> factory,
         HttpClient client,
@@ -255,7 +259,7 @@ public static class IntegrationTestHelper
             CustomerId = customerId,
 
             PlateNumber =
-    $"34TST{new Random().Next(10000, 99999)}",
+    $"34{(char)Random.Shared.Next('A', 'Z' + 1)}{(char)Random.Shared.Next('A', 'Z' + 1)}{Random.Shared.Next(1000, 10000)}",
 
             VIN =
     uniqueId.Substring(0, 17),

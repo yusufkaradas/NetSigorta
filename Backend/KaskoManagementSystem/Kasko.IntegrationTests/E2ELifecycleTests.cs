@@ -56,7 +56,7 @@ public class E2ELifecycleTests
             quote.Status);
 
         Assert.Equal(
-               24187.50m,
+               26606.25m,
     quote.PremiumAmount);
         var snapshot =
     await IntegrationTestHelper

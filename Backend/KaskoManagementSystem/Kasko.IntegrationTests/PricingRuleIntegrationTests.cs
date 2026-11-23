@@ -10,6 +10,36 @@ namespace Kasko.IntegrationTests;
 
 public class PricingRuleIntegrationTests
 {
+    private static async Task<PricingRuleDto> CreateTestRuleAsync(
+        HttpClient adminClient)
+    {
+        var response =
+            await adminClient.PostAsJsonAsync(
+                "/api/PricingRule",
+                new CreatePricingRuleDto
+                {
+                    Code = $"INTEGRATION_TEST_RULE_{Guid.NewGuid():N}",
+                    Name = "Integration Test Rule",
+                    Description = "Created for update integration test",
+                    Value = 0.1234m,
+                    IsActive = true,
+                    EffectiveFrom = DateTime.UtcNow,
+                    EffectiveUntil = null
+                });
+
+        Assert.Equal(
+            HttpStatusCode.Created,
+            response.StatusCode);
+
+        var rule =
+            await response.Content
+                .ReadFromJsonAsync<PricingRuleDto>();
+
+        Assert.NotNull(rule);
+
+        return rule!;
+    }
+
     [Fact]
     public async Task Manager_GetPricingRules_Should_ReturnSuccess()
     {
@@ -243,22 +273,8 @@ public class PricingRuleIntegrationTests
                 factory,
                 admin);
 
-        await using var scope =
-            factory.Services.CreateAsyncScope();
-
-        var pricingRuleRepository =
-            scope.ServiceProvider
-                .GetRequiredService<IPricingRuleRepository>();
-
         var rule =
-            (await pricingRuleRepository.GetAllAsync())
-                .Where(x =>
-                    x.Code == "INTEGRATION_TEST_RULE" &&
-                    !x.IsDeleted)
-                .OrderByDescending(x => x.Version)
-                .FirstOrDefault();
-
-        Assert.NotNull(rule);
+            await CreateTestRuleAsync(client);
 
         var request =
             new UpdatePricingRuleDto
@@ -328,22 +344,18 @@ public class PricingRuleIntegrationTests
                 factory,
                 manager);
 
-        await using var scope =
-            factory.Services.CreateAsyncScope();
+        var admin =
+            await IntegrationTestHelper.SeedUserAsync(
+                factory,
+                "Admin");
 
-        var pricingRuleRepository =
-            scope.ServiceProvider
-                .GetRequiredService<IPricingRuleRepository>();
+        using var adminClient =
+            await IntegrationTestHelper.LoginAsync(
+                factory,
+                admin);
 
         var rule =
-            (await pricingRuleRepository.GetAllAsync())
-                .Where(x =>
-                    x.Code == "INTEGRATION_TEST_RULE" &&
-                    !x.IsDeleted)
-                .OrderByDescending(x => x.Version)
-                .FirstOrDefault();
-
-        Assert.NotNull(rule);
+            await CreateTestRuleAsync(adminClient);
 
         var request =
             new UpdatePricingRuleDto

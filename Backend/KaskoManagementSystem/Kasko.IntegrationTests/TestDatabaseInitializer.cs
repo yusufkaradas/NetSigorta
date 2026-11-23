@@ -1,4 +1,5 @@
 using Kasko.DataAccess;
+using Kasko.Entities.Concrete;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.CompilerServices;
 
@@ -20,5 +21,31 @@ internal static class TestDatabaseInitializer
 
         using var context = new KaskoContext(options);
         context.Database.Migrate();
+
+        DisableQuoteAutoApproval(context);
+    }
+
+    private static void DisableQuoteAutoApproval(KaskoContext context)
+    {
+        const string code = "AUTO_APPROVE_MAX_PREMIUM";
+
+        if (context.PricingRules.Any(x => x.Code == code && !x.IsDeleted))
+        {
+            return;
+        }
+
+        context.PricingRules.Add(new PricingRule
+        {
+            Id = Guid.NewGuid(),
+            Code = code,
+            Name = "Otomatik onay üst prim limiti (entegrasyon testi)",
+            Value = 0m,
+            Version = 1,
+            IsActive = true,
+            EffectiveFrom = new DateTime(2000, 1, 1),
+            CreatedDate = DateTime.UtcNow
+        });
+
+        context.SaveChanges();
     }
 }

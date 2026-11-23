@@ -174,7 +174,11 @@ public class PricingRuleChangeRequestIntegrationTests
         Assert.NotNull(currentRule);
 
         var effectiveFrom =
-            currentRule!.EffectiveFrom.AddMonths(1);
+            new[]
+            {
+                currentRule!.EffectiveFrom.AddMonths(1),
+                DateTime.UtcNow.Date.AddDays(30)
+            }.Max();
 
         var newValue =
             currentRule.Value + 0.0010m;

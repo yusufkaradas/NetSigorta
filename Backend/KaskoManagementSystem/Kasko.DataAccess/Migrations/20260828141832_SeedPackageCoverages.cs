@@ -29,6 +29,20 @@ namespace Kasko.DataAccess.Migrations
             var hirsizlikTeminatiCoverageId =
                 new Guid("7733CFDE-16A2-4329-B613-52A2F5CC8F1B");
 
+            migrationBuilder.Sql(@"
+IF NOT EXISTS (SELECT 1 FROM [Coverages] WHERE [Id] = 'DD1B1CC2-8B4F-43AA-8ED6-81BFE49200DF')
+    INSERT INTO [Coverages] ([Id], [Name], [Description], [BasePrice], [IsActive], [CreatedDate], [IsDeleted], [IsRequired], [PricingType])
+    VALUES ('DD1B1CC2-8B4F-43AA-8ED6-81BFE49200DF', N'Cam Kırılması', NULL, 855, 1, '2026-08-28', 0, 0, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Coverages] WHERE [Id] = 'A0DD1498-C060-4547-8FA4-9D5CC54C9BF0')
+    INSERT INTO [Coverages] ([Id], [Name], [Description], [BasePrice], [IsActive], [CreatedDate], [IsDeleted], [IsRequired], [PricingType])
+    VALUES ('A0DD1498-C060-4547-8FA4-9D5CC54C9BF0', N'Hırsızlık', NULL, 0, 1, '2026-08-28', 0, 0, 1);
+
+IF NOT EXISTS (SELECT 1 FROM [Coverages] WHERE [Id] = '7733CFDE-16A2-4329-B613-52A2F5CC8F1B')
+    INSERT INTO [Coverages] ([Id], [Name], [Description], [BasePrice], [IsActive], [CreatedDate], [IsDeleted], [IsRequired], [PricingType])
+    VALUES ('7733CFDE-16A2-4329-B613-52A2F5CC8F1B', N'Hırsızlık Teminatı', NULL, 0, 0, '2026-08-28', 1, 0, 1);
+");
+
             migrationBuilder.InsertData(
                 table: "PackageCoverages",
                 columns: new[]
@@ -152,6 +166,13 @@ namespace Kasko.DataAccess.Migrations
                         null
                     }
                 });
+
+            migrationBuilder.Sql(@"
+UPDATE [PackageCoverages]
+SET [IsDeleted] = 1, [DeletedDate] = '2026-08-28'
+WHERE [CoverageId] = '7733CFDE-16A2-4329-B613-52A2F5CC8F1B'
+  AND EXISTS (SELECT 1 FROM [Coverages] WHERE [Id] = '7733CFDE-16A2-4329-B613-52A2F5CC8F1B' AND [IsDeleted] = 1);
+");
         }
 
         /// <inheritdoc />

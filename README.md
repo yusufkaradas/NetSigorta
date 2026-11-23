@@ -32,39 +32,24 @@ Müşteri ➔ Araç ➔ Fiyatlandırma Motoru ➔ Teklif ➔ Poliçe ➔ Ödeme 
 
 ## Ekran Görüntüleri
 
-<table>
-  <tr>
-    <td width="50%"><b>Hızlı Teklif — Paket Karşılaştırma</b><br><img src="docs/screenshots/02-hizli-teklif-paket.png" alt="Hızlı teklif paket seçimi" width="100%"></td>
-    <td width="50%"><b>Formül Motoru — Adım Adım Prim Hesabı</b><br><img src="docs/screenshots/08-formul-motoru.png" alt="Formül motoru simülasyonu" width="100%"></td>
-  </tr>
-</table>
+| Hızlı Teklif — Paket Karşılaştırma | Formül Motoru — Adım Adım Prim Hesabı |
+|---|---|
+| ![Hızlı teklif paket seçimi](docs/screenshots/02-hizli-teklif-paket.png) | ![Formül motoru simülasyonu](docs/screenshots/08-formul-motoru.png) |
 
 <details>
 <summary><b>Diğer ekranlar (9)</b></summary>
-<br>
 
-<table>
-  <tr>
-    <td width="50%"><b>Hızlı Teklif — Başlangıç</b><br><img src="docs/screenshots/01-hizli-teklif-giris.png" alt="Hızlı teklif başlangıç" width="100%"></td>
-    <td width="50%"><b>Hızlı Teklif — Fiyat</b><br><img src="docs/screenshots/03-hizli-teklif-fiyat.png" alt="Hızlı teklif fiyat sonucu" width="100%"></td>
-  </tr>
-  <tr>
-    <td><b>Müşteri Portalı — Dashboard</b><br><img src="docs/screenshots/04-musteri-paneli.png" alt="Müşteri paneli" width="100%"></td>
-    <td><b>Müşteri Portalı — Poliçelerim</b><br><img src="docs/screenshots/05-musteri-policeler.png" alt="Müşteri poliçe listesi" width="100%"></td>
-  </tr>
-  <tr>
-    <td><b>Yönetici Paneli — Dashboard</b><br><img src="docs/screenshots/06-yonetici-paneli.png" alt="Yönetici paneli" width="100%"></td>
-    <td><b>Paket ve Teminat Yönetimi</b><br><img src="docs/screenshots/07-paket-teminat.png" alt="Paket ve teminat yönetimi" width="100%"></td>
-  </tr>
-  <tr>
-    <td><b>Fiyat Kuralları (Sürümlü)</b><br><img src="docs/screenshots/09-fiyat-kurallari.png" alt="Fiyat kuralları" width="100%"></td>
-    <td><b>Fiyat Değişikliği Onay Akışı (Admin)</b><br><img src="docs/screenshots/10-fiyat-talep-onayi.png" alt="Fiyat talebi onayı" width="100%"></td>
-  </tr>
-  <tr>
-    <td><b>Kullanıcı Yönetimi (Admin)</b><br><img src="docs/screenshots/11-kullanicilar.png" alt="Kullanıcı yönetimi" width="100%"></td>
-    <td></td>
-  </tr>
-</table>
+| Hızlı Teklif — Başlangıç | Hızlı Teklif — Fiyat |
+|---|---|
+| ![Hızlı teklif başlangıç](docs/screenshots/01-hizli-teklif-giris.png) | ![Hızlı teklif fiyat sonucu](docs/screenshots/03-hizli-teklif-fiyat.png) |
+| **Müşteri Portalı — Dashboard** | **Müşteri Portalı — Poliçelerim** |
+| ![Müşteri paneli](docs/screenshots/04-musteri-paneli.png) | ![Müşteri poliçe listesi](docs/screenshots/05-musteri-policeler.png) |
+| **Yönetici Paneli — Dashboard** | **Paket ve Teminat Yönetimi** |
+| ![Yönetici paneli](docs/screenshots/06-yonetici-paneli.png) | ![Paket ve teminat yönetimi](docs/screenshots/07-paket-teminat.png) |
+| **Fiyat Kuralları (Sürümlü)** | **Fiyat Değişikliği Onay Akışı (Admin)** |
+| ![Fiyat kuralları](docs/screenshots/09-fiyat-kurallari.png) | ![Fiyat talebi onayı](docs/screenshots/10-fiyat-talep-onayi.png) |
+| **Kullanıcı Yönetimi (Admin)** | |
+| ![Kullanıcı yönetimi](docs/screenshots/11-kullanicilar.png) | |
 
 </details>
 
@@ -76,12 +61,11 @@ Uygulamayı farklı rollerle denemek için aşağıdaki hesapları kullanabilirs
 
 | Rol | E-posta | Şifre | Neler denenebilir? |
 |---|---|---|---|
+| Sistem Yöneticisi (Admin) | `admin@test.com` | `Test123!` | Kullanıcı ve rol yönetimi, formül motoru, fiyat kuralları, fiyat değişikliği onayı |
 | Müşteri | `customer@test.com` | `Test123!` | Hızlı teklif, teklif onayı, poliçe ve ödeme geçmişi, poliçe PDF'i |
 | Yönetici (Manager) | `manager@test.com` | `Test123!` | Personel paneli, müşteri/araç/teklif/poliçe yönetimi, fiyat kuralı değişiklik talebi |
 
-> ⚠️ Bu hesaplar herkese açık demo hesaplarıdır. Şifre, e-posta ve hesap durumu değiştirilemez; şifre sıfırlama da kapalıdır. Lütfen gerçek kişisel bilgi girmeyin.
->
-> Admin yetkileri (kullanıcı/rol yönetimi, fiyat kuralı onayı) güvenlik nedeniyle herkese açık değildir. Erişim için geliştiriciyle iletişime geçebilirsiniz.
+> ⚠️ Bu hesaplar herkese açık demo hesaplarıdır. Şifre, e-posta, rol ve hesap durumu değiştirilemez; şifre sıfırlama da kapalıdır. Lütfen gerçek kişisel bilgi girmeyin ve verileri silmek yerine yeni kayıt oluşturarak deneyin.
 
 ---
 

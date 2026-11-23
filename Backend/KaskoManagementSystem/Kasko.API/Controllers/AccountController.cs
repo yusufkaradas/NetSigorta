@@ -14,13 +14,16 @@ namespace Kasko.API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasherService _passwordHasherService;
+        private readonly DemoAccountPolicy _demoAccountPolicy;
 
         public AccountController(
             IUnitOfWork unitOfWork,
-            PasswordHasherService passwordHasherService)
+            PasswordHasherService passwordHasherService,
+            DemoAccountPolicy demoAccountPolicy)
         {
             _unitOfWork = unitOfWork;
             _passwordHasherService = passwordHasherService;
+            _demoAccountPolicy = demoAccountPolicy;
         }
 
         public class UpdateAccountDto
@@ -48,7 +51,8 @@ namespace Kasko.API.Controllers
                 user.LastName,
                 user.Email,
                 user.PhoneNumber,
-                Role = user.Role?.Name
+                Role = user.Role?.Name,
+                IsDemo = _demoAccountPolicy.IsProtected(user.Email)
             });
         }
 
@@ -56,6 +60,8 @@ namespace Kasko.API.Controllers
         public async Task<IActionResult> Update([FromBody] UpdateAccountDto dto)
         {
             var user = await GetCurrentUserAsync();
+
+            _demoAccountPolicy.EnsureNotProtected(user.Email);
 
             var firstName = dto.FirstName.Trim();
             var lastName = dto.LastName.Trim();
@@ -101,6 +107,8 @@ namespace Kasko.API.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
             var user = await GetCurrentUserAsync();
+
+            _demoAccountPolicy.EnsureNotProtected(user.Email);
 
             if (!_passwordHasherService.VerifyPassword(user, dto.CurrentPassword, user.PasswordHash))
             {

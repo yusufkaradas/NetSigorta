@@ -34,13 +34,58 @@ public class AuthSecurityTests
         _roles.Setup(x => x.GetByIdAsync(_adminRole.Id)).ReturnsAsync(_adminRole);
     }
 
-    private AuthService CreateService(bool exposeCodes)
+    private AuthService CreateService(bool exposeCodes, params string[] protectedDemoAccounts)
     {
         return new AuthService(
             _unitOfWork.Object,
             _hasher,
             new JwtTokenService(Mock.Of<IConfiguration>()),
-            new VerificationCodePolicy(exposeCodes));
+            new VerificationCodePolicy(exposeCodes),
+            new DemoAccountPolicy(protectedDemoAccounts));
+    }
+
+    [Fact]
+    public async Task SendResetCode_ForProtectedDemoAccount_ShouldBeBlocked()
+    {
+        AddUser("customer@test.com", _customerRole);
+
+        var service = CreateService(exposeCodes: true, "customer@test.com");
+
+        var error = await Assert.ThrowsAsync<BadRequestException>(() =>
+            service.SendPasswordResetCodeAsync(new PasswordResetRequestDto { Email = " Customer@Test.com " }));
+
+        Assert.Equal(DemoAccountPolicy.BlockedMessage, error.Message);
+    }
+
+    [Fact]
+    public async Task ResetPassword_ForProtectedDemoAccount_ShouldBeBlockedEvenWithValidCode()
+    {
+        var user = AddUser("customer@test.com", _customerRole);
+        var originalHash = user.PasswordHash;
+
+        var code = (await CreateService(exposeCodes: true)
+            .SendPasswordResetCodeAsync(new PasswordResetRequestDto { Email = "customer@test.com" })).DemoCode;
+
+        await Assert.ThrowsAsync<BadRequestException>(() =>
+            CreateService(exposeCodes: true, "customer@test.com").ResetPasswordAsync(new PasswordResetConfirmDto
+            {
+                Email = "customer@test.com",
+                Code = code,
+                NewPassword = "YeniSifre1"
+            }));
+
+        Assert.Equal(originalHash, user.PasswordHash);
+    }
+
+    [Fact]
+    public async Task SendResetCode_ForUnprotectedCustomer_ShouldStillWork()
+    {
+        AddUser("elif@ornek.com", _customerRole);
+
+        var result = await CreateService(exposeCodes: true, "customer@test.com")
+            .SendPasswordResetCodeAsync(new PasswordResetRequestDto { Email = "elif@ornek.com" });
+
+        Assert.Matches("^[0-9]{6}$", result.DemoCode);
     }
 
     private User AddUser(string email, Role role, string password = "Gizli123", bool isActive = true)

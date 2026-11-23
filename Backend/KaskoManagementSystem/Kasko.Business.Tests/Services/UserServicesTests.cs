@@ -668,5 +668,72 @@ namespace Kasko.Business.Tests.Services
                 x => x.SaveChangesAsync(),
                 Times.Once);
         }
+
+        private UserService CreateServiceWithDemoAccounts(params string[] protectedEmails)
+        {
+            return new UserService(
+                _unitOfWorkMock.Object,
+                _passwordHasherService,
+                _httpContextAccessorMock.Object,
+                new DemoAccountPolicy(protectedEmails));
+        }
+
+        private User SetupDemoUser(Guid roleId)
+        {
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Demo",
+                LastName = "Yönetici",
+                Email = "manager@test.com",
+                RoleId = roleId,
+                IsActive = true
+            };
+
+            _userRepositoryMock.Setup(x => x.GetByIdAsync(user.Id)).ReturnsAsync(user);
+
+            return user;
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ForProtectedDemoAccount_ShouldThrowAndNotDelete()
+        {
+            var user = SetupDemoUser(Guid.NewGuid());
+
+            await Assert.ThrowsAsync<BadRequestException>(() =>
+                CreateServiceWithDemoAccounts("manager@test.com").DeleteAsync(user.Id));
+
+            _userRepositoryMock.Verify(
+                x => x.DeleteUserAsync(It.IsAny<Guid>(), It.IsAny<Guid?>()),
+                Times.Never);
+        }
+
+        [Theory]
+        [InlineData("baska@test.com", true, false)]
+        [InlineData("manager@test.com", false, false)]
+        [InlineData("manager@test.com", true, true)]
+        public async Task UpdateAsync_ForProtectedDemoAccount_ShouldBlockEmailStatusAndRoleChanges(
+            string newEmail, bool isActive, bool changeRole)
+        {
+            var roleId = Guid.NewGuid();
+            var user = SetupDemoUser(roleId);
+
+            var dto = new UpdateUserDto
+            {
+                Id = user.Id,
+                FirstName = "Demo",
+                LastName = "Yönetici",
+                Email = newEmail,
+                IsActive = isActive,
+                RoleId = changeRole ? Guid.NewGuid() : roleId
+            };
+
+            var error = await Assert.ThrowsAsync<BadRequestException>(() =>
+                CreateServiceWithDemoAccounts("manager@test.com").UpdateAsync(dto));
+
+            Assert.Equal(DemoAccountPolicy.BlockedMessage, error.Message);
+
+            _userRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<User>()), Times.Never);
+        }
     }
 }

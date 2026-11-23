@@ -76,12 +76,11 @@ Uygulamayı farklı rollerle denemek için aşağıdaki hesapları kullanabilirs
 
 | Rol | E-posta | Şifre | Neler denenebilir? |
 |---|---|---|---|
+| Sistem Yöneticisi (Admin) | `admin@test.com` | `Test123!` | Kullanıcı ve rol yönetimi, formül motoru, fiyat kuralları, fiyat değişikliği onayı |
 | Müşteri | `customer@test.com` | `Test123!` | Hızlı teklif, teklif onayı, poliçe ve ödeme geçmişi, poliçe PDF'i |
 | Yönetici (Manager) | `manager@test.com` | `Test123!` | Personel paneli, müşteri/araç/teklif/poliçe yönetimi, fiyat kuralı değişiklik talebi |
 
-> ⚠️ Bu hesaplar herkese açık demo hesaplarıdır. Şifre, e-posta ve hesap durumu değiştirilemez; şifre sıfırlama da kapalıdır. Lütfen gerçek kişisel bilgi girmeyin.
->
-> Admin yetkileri (kullanıcı/rol yönetimi, fiyat kuralı onayı) güvenlik nedeniyle herkese açık değildir. Erişim için geliştiriciyle iletişime geçebilirsiniz.
+> ⚠️ Bu hesaplar herkese açık demo hesaplarıdır. Şifre, e-posta, rol ve hesap durumu değiştirilemez; şifre sıfırlama da kapalıdır. Lütfen gerçek kişisel bilgi girmeyin ve verileri silmek yerine yeni kayıt oluşturarak deneyin.
 
 ---
 

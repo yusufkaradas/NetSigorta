@@ -7,8 +7,9 @@ namespace Kasko.IntegrationTests;
 
 internal static class TestDatabaseInitializer
 {
-    public const string ConnectionString =
-        "Server=.;Database=KaskoManagementDb_Test;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=60;";
+    public static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("KASKO_TEST_CONNECTION")
+        ?? "Server=.;Database=KaskoManagementDb_Test;Trusted_Connection=True;TrustServerCertificate=True;Connect Timeout=60;";
 
     [ModuleInitializer]
     internal static void Initialize()

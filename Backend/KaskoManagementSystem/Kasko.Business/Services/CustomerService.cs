@@ -3,6 +3,7 @@ using Kasko.Business.DTOs.Customer;
 using Kasko.Business.DTOs.QuickQuote;
 using Kasko.Business.Exceptions;
 using Kasko.Business.Interfaces;
+using Kasko.Business.Security;
 using Kasko.DataAccess.Repositories.Abstract;
 using Kasko.Entities.Concrete;
 using Microsoft.AspNetCore.Http;
@@ -13,13 +14,33 @@ public class CustomerService : ICustomerService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly DemoAccountPolicy _demoAccountPolicy;
 
     public CustomerService(
         IUnitOfWork unitOfWork,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        DemoAccountPolicy? demoAccountPolicy = null)
     {
         _unitOfWork = unitOfWork;
         _httpContextAccessor = httpContextAccessor;
+        _demoAccountPolicy = demoAccountPolicy ?? DemoAccountPolicy.None;
+    }
+
+    private async Task<bool> IsLinkedToDemoAccountAsync(Customer customer)
+    {
+        if (!_demoAccountPolicy.HasProtectedAccounts)
+        {
+            return false;
+        }
+
+        if (_demoAccountPolicy.IsProtected(customer.Email))
+        {
+            return true;
+        }
+
+        var users = await _unitOfWork.Users.FindAsync(x => x.CustomerId == customer.Id && !x.IsDeleted);
+
+        return users.Any(x => _demoAccountPolicy.IsProtected(x.Email));
     }
 
     private async Task<Guid?> GetCurrentCustomerIdAsync()
@@ -172,6 +193,12 @@ public class CustomerService : ICustomerService
             dto.DateOfBirth = customer.DateOfBirth;
             dto.Email = customer.Email;
             dto.IsActive = customer.IsActive;
+        }
+
+        if ((!string.Equals(customer.Email, dto.Email?.Trim(), StringComparison.OrdinalIgnoreCase) || !dto.IsActive) &&
+            await IsLinkedToDemoAccountAsync(customer))
+        {
+            throw new BadRequestException(DemoAccountPolicy.BlockedMessage);
         }
 
         var identityExists = await _unitOfWork.Customers
@@ -330,6 +357,11 @@ public class CustomerService : ICustomerService
         {
             throw new NotFoundException(
                 "Müşteri bulunamadı.");
+        }
+
+        if (await IsLinkedToDemoAccountAsync(customer))
+        {
+            throw new BadRequestException(DemoAccountPolicy.BlockedMessage);
         }
 
         var hasActivePolicy =

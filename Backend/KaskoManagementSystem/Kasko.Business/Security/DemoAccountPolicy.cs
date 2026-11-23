@@ -20,6 +20,8 @@ public class DemoAccountPolicy
 
     public static DemoAccountPolicy None { get; } = new(null);
 
+    public bool HasProtectedAccounts => _protectedEmails.Count > 0;
+
     public bool IsProtected(string? email)
     {
         return !string.IsNullOrWhiteSpace(email) && _protectedEmails.Contains(Normalize(email));

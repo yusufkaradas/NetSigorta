@@ -88,6 +88,8 @@ builder.Services.AddHostedService<Kasko.API.BackgroundJobs.CatalogImportWorker>(
 builder.Services.AddSingleton<IQuickQuoteVerificationService, QuickQuoteVerificationService>();
 builder.Services.AddSingleton(new VerificationCodePolicy(
     builder.Configuration.GetValue<bool>("Demo:ExposeVerificationCodes")));
+builder.Services.AddSingleton(new DemoAccountPolicy(
+    builder.Configuration.GetSection("Demo:ProtectedAccounts").Get<string[]>()));
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {

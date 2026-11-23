@@ -16,6 +16,7 @@ public class AuthService : IAuthService
     private readonly PasswordHasherService _passwordHasherService;
     private readonly JwtTokenService _jwtTokenService;
     private readonly VerificationCodePolicy _verificationCodePolicy;
+    private readonly DemoAccountPolicy _demoAccountPolicy;
 
     private static readonly string[] StaffRoles = { "Admin", "Manager" };
 
@@ -25,12 +26,14 @@ public class AuthService : IAuthService
         IUnitOfWork unitOfWork,
         PasswordHasherService passwordHasherService,
         JwtTokenService jwtTokenService,
-        VerificationCodePolicy verificationCodePolicy)
+        VerificationCodePolicy verificationCodePolicy,
+        DemoAccountPolicy? demoAccountPolicy = null)
     {
         _unitOfWork = unitOfWork;
         _passwordHasherService = passwordHasherService;
         _jwtTokenService = jwtTokenService;
         _verificationCodePolicy = verificationCodePolicy;
+        _demoAccountPolicy = demoAccountPolicy ?? DemoAccountPolicy.None;
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
@@ -215,6 +218,8 @@ public class AuthService : IAuthService
     {
         var email = (dto.Email ?? string.Empty).Trim().ToLowerInvariant();
 
+        _demoAccountPolicy.EnsureNotProtected(email);
+
         var user = (await _unitOfWork.Users.FindAsync(x => x.Email.ToLower() == email && !x.IsDeleted)).FirstOrDefault();
 
         if (user == null || !user.IsActive || await IsStaffAsync(user))
@@ -252,6 +257,8 @@ public class AuthService : IAuthService
     public async Task ResetPasswordAsync(PasswordResetConfirmDto dto)
     {
         var email = (dto.Email ?? string.Empty).Trim().ToLowerInvariant();
+
+        _demoAccountPolicy.EnsureNotProtected(email);
 
         if (!ResetCodes.TryGetValue(email, out var pending))
         {

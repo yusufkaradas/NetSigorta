@@ -17,11 +17,13 @@ public class UserService : IUserService
     public UserService(
         IUnitOfWork unitOfWork,
         PasswordHasherService passwordHasherService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        DemoAccountPolicy? demoAccountPolicy = null)
     {
         _unitOfWork = unitOfWork;
         _passwordHasherService = passwordHasherService;
         _httpContextAccessor = httpContextAccessor;
+        _demoAccountPolicy = demoAccountPolicy ?? DemoAccountPolicy.None;
     }
 
     public async Task<IEnumerable<UserListDto>> GetAllAsync()
@@ -151,6 +153,14 @@ public class UserService : IUserService
             throw new NotFoundException("Kullanıcı bulunamadı.");
         }
 
+        if (_demoAccountPolicy.IsProtected(user.Email) &&
+            (!string.Equals(user.Email, dto.Email?.Trim(), StringComparison.OrdinalIgnoreCase) ||
+             user.RoleId != dto.RoleId ||
+             !dto.IsActive))
+        {
+            throw new BadRequestException(DemoAccountPolicy.BlockedMessage);
+        }
+
         
         var emailExists = await _unitOfWork.Users
             .AnyAsync(x => x.Email == dto.Email && x.Id != dto.Id);
@@ -251,6 +261,8 @@ public class UserService : IUserService
 
         var existingUser = await _unitOfWork.Users.GetByIdAsync(id);
 
+        _demoAccountPolicy.EnsureNotProtected(existingUser?.Email);
+
         if (existingUser != null && deletedBy == existingUser.Id)
         {
             throw new BadRequestException("Kendi hesabınızı silemezsiniz.");
@@ -318,5 +330,7 @@ public class UserService : IUserService
     }
 
     private readonly IHttpContextAccessor _httpContextAccessor;
+
+    private readonly DemoAccountPolicy _demoAccountPolicy;
 
 }
